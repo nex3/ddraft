@@ -2,8 +2,13 @@
   "name": "drafto",
   "description": "Long-term draft simulator",
   "author": "Natalie Weizenbaum",
+  "type": "module",
   "dependencies": {
+    "csv-parse": "^5.4.0",
+    "got": "^13.0.0",
     "gts": "^3.1.1",
+    "pkg-dir": "^7.0.0",
+    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
   "devDependencies": {
