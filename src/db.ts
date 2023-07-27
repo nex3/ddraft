@@ -32,7 +32,7 @@ export class Database {
   }
 
   async set(key: string, value: Data): Promise<void> {
-    this.data[key] = Object.freeze(value);
+    this.data[key] = Object.freeze(structuredClone(value));
     await fs.writeFile(path, JSON.stringify(this.data));
   }
 
