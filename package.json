@@ -1,10 +1,10 @@
 {
-  "name": "drafto",
+  "name": "ddraft",
   "description": "Long-term draft simulator",
   "author": "Natalie Weizenbaum",
   "type": "module",
   "dependencies": {
-    "@types/express": "^4.18.2",
+    "@types/express": "^4.17.17",
     "@types/lodash": "^4.14.196",
     "csv-parse": "^5.4.0",
     "express": "^4.18.2",
