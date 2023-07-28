@@ -1,4 +1,5 @@
 import chunk from 'lodash/chunk.js';
+import pull from 'lodash/pull.js';
 
 import {Card} from './card.js';
 import {Cube} from './cube.js';
@@ -7,7 +8,7 @@ import {Database} from './db.js';
 interface SerializedSeat {
   readonly drafted: string[];
   readonly sideboard: string[];
-  readonly currentPack: string[];
+  readonly packBacklog: string[][];
   readonly unopenedPacks: string[][];
   readonly readTime: number | null;
 }
@@ -15,7 +16,7 @@ interface SerializedSeat {
 interface Seat {
   readonly drafted: Card[];
   readonly sideboard: Card[];
-  readonly currentPack: Card[];
+  readonly packBacklog: Card[][];
   readonly unopenedPacks: Card[][];
   readTime: Date | null;
 }
@@ -34,7 +35,7 @@ export class Draft {
         ([currentPack, ...unopenedPacks]) => ({
           drafted: [],
           sideboard: [],
-          currentPack,
+          packBacklog: [currentPack],
           unopenedPacks,
           readTime: null,
         })
@@ -53,7 +54,7 @@ export class Draft {
         serialized.map(seat => ({
           drafted: deserializeCards(seat.drafted),
           sideboard: deserializeCards(seat.sideboard),
-          currentPack: deserializeCards(seat.currentPack),
+          packBacklog: seat.packBacklog.map(deserializeCards),
           unopenedPacks: seat.unopenedPacks.map(deserializeCards),
           readTime: seat.readTime ? new Date(seat.readTime) : null,
         }))
@@ -109,12 +110,82 @@ export class Draft {
 
   getPack(index: number): Card[] {
     this.checkSeatNumber(index);
-    return this.seats[index].currentPack;
+    return this.seats[index].packBacklog[0] ?? [];
+  }
+
+  getDrafted(index: number): Card[] {
+    this.checkSeatNumber(index);
+    return this.seats[index].drafted;
+  }
+
+  getSideboard(index: number): Card[] {
+    this.checkSeatNumber(index);
+    return this.seats[index].sideboard;
   }
 
   packNumber(index: number): number {
     this.checkSeatNumber(index);
     return 3 - this.seats[index].unopenedPacks.length;
+  }
+
+  pick(index: number, name: string, sideboard: boolean): void {
+    this.checkSeatNumber(index);
+    const seat = this.seats[index];
+    const pack = seat.packBacklog[0];
+    if (!pack) {
+      throw `Seat ${index} doesn't have a pack to pick from.`;
+    }
+
+    const pick = this.chooseCard(pack, name);
+    pull(pack, pick);
+    seat.packBacklog.shift();
+    (sideboard ? seat.sideboard : seat.drafted).push(pick);
+
+    if (pack.length === 0) {
+      if (seat.unopenedPacks.length > 0) {
+        seat.packBacklog.push(seat.unopenedPacks.shift()!);
+      }
+    } else {
+      const direction = seat.unopenedPacks.length === 1 ? 1 : -1;
+      let nextSeatIndex = index + direction;
+      if (nextSeatIndex < 0) nextSeatIndex += 8;
+
+      const nextSeat = this.seats[nextSeatIndex];
+      nextSeat.packBacklog.push(pack);
+    }
+
+    this.save();
+  }
+
+  private chooseCard(cards: Card[], name: string): Card {
+    const originalName = name;
+    name = name.toLowerCase();
+
+    const nonContiguousMatches = [];
+    const contiguousMatches = [];
+    for (const card of cards) {
+      const cardName = card.name.toLowerCase();
+      if (cardName === name) return card;
+
+      if (cardName.includes(name)) {
+        nonContiguousMatches.push(card);
+        contiguousMatches.push(card);
+      } else if (containsChars(cardName, name)) {
+        nonContiguousMatches.push(card);
+      }
+    }
+
+    if (contiguousMatches.length === 1) return contiguousMatches[0];
+    if (nonContiguousMatches.length === 1) return nonContiguousMatches[0];
+
+    if (nonContiguousMatches.length === 0) {
+      throw `None of these cards has a name matching "${originalName}".`;
+    } else {
+      const matches = contiguousMatches.length > 1 ? contiguousMatches : nonContiguousMatches;
+
+      throw 'Multiple of these cards have names matching ' + `"${originalName}": ` +
+          matches.map(card => card.name).join(', ');
+    }
   }
 
   private checkSeatNumber(seat: number): void {
@@ -129,11 +200,30 @@ export class Draft {
       this.seats.map(seat => ({
         drafted: serializeCards(seat.drafted),
         sideboard: serializeCards(seat.sideboard),
-        currentPack: serializeCards(seat.currentPack),
+        packBacklog: seat.packBacklog.map(serializeCards),
         unopenedPacks: seat.unopenedPacks.map(serializeCards),
         readTime: seat.readTime?.getTime() ?? null,
       }))
     );
+  }
+}
+
+// Returns whether `superstring` contains all of the characters of `substring`
+// in order, but not necessarily contiguously.
+function containsChars(superstring: string, substring: string) {
+  var superstringIndex = 0;
+  var substringIndex = 0;
+  while (true) {
+    if (substringIndex === substring.length) {
+      return true;
+    } else if (superstringIndex === superstring.length) {
+      return false;
+    }
+
+    if (superstring.charCodeAt(superstringIndex) === substring.charCodeAt(substringIndex)) {
+      substringIndex++;
+    }
+    superstringIndex++;
   }
 }
 

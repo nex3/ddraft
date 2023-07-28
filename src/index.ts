@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as url from 'url';
 
+import bodyParser from 'body-parser';
 import express from 'express';
 import got from 'got';
 import {Liquid} from 'liquidjs';
@@ -37,6 +38,7 @@ app.use(
     fs.existsSync(`${prodPublic}/style.css`) ? prodPublic : devPublic
   )
 );
+app.use(bodyParser.urlencoded({extended: false}));
 
 const liquid = new Liquid({
   cache: process.env.NODE_ENV === 'production',
@@ -64,12 +66,34 @@ app.get('/cube/ddraft/pack/:seat', (req, res) => {
   const pack = draft.getPack(seat);
   res.render('pack', {
     pack,
+    drafted: draft.getDrafted(seat),
+    sideboard: draft.getSideboard(seat),
     seatNumber: seat + 1,
     packNumber: draft.packNumber(seat),
     pickNumber: 16 - pack.length,
     packImage: `/image/${cube.encodeCards(pack)}`,
     packImageWidth: CARD_WIDTH * 5,
     packImageHeight: CARD_HEIGHT * Math.ceil(pack.length / 5),
+  });
+});
+
+app.post('/cube/api/ddraft/pack/:seat', (req, res) => {
+  const draft = Draft.loadOrCreate(cube, db);
+  const seat = parseInt(req.params.seat);
+
+  try {
+    draft.pick(seat, req.body.card, req.body.sideboard);
+  } catch (error) {
+    if (typeof error !== 'string') throw error;
+    return res.status(400).send({
+      success: 'false',
+      message: error.toString(),
+    });
+  }
+
+  return res.status(200).send({
+    success: 'true',
+    ...draft.seatImages(seat),
   });
 });
 
