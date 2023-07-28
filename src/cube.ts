@@ -15,6 +15,7 @@ interface CsvCard {
   name: string;
   Set: string;
   'Collector Number': string;
+  CMC: string;
 }
 
 export class Cube {
@@ -26,7 +27,14 @@ export class Cube {
     let index = 0;
     return new Cube(
       (csv.parse(await got(csvUrl).text(), {columns: true}) as CsvCard[]).map(
-        card => new Card(card.name, card.Set, card['Collector Number'], index++)
+        card =>
+          new Card(
+            card.name,
+            card.Set,
+            parseInt(card.CMC),
+            card['Collector Number'],
+            index++
+          )
       )
     );
   }

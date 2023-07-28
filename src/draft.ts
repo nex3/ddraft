@@ -96,7 +96,7 @@ export class Draft {
 
     const seat = this.seats[index];
     if (seat.drafted.length > 0) {
-      response.deck_image = `/image/${this.cube.encodeCards(seat.drafted)}`;
+      response.deck_image = `/image/${this.cube.encodeCards(seat.drafted)}?cmc`;
     }
 
     if (seat.sideboard.length > 0) {
@@ -181,10 +181,14 @@ export class Draft {
     if (nonContiguousMatches.length === 0) {
       throw `None of these cards has a name matching "${originalName}".`;
     } else {
-      const matches = contiguousMatches.length > 1 ? contiguousMatches : nonContiguousMatches;
+      const matches =
+        contiguousMatches.length > 1 ? contiguousMatches : nonContiguousMatches;
 
-      throw 'Multiple of these cards have names matching ' + `"${originalName}": ` +
-          matches.map(card => card.name).join(', ');
+      throw (
+        'Multiple of these cards have names matching ' +
+        `"${originalName}": ` +
+        matches.map(card => card.name).join(', ')
+      );
     }
   }
 
@@ -211,16 +215,19 @@ export class Draft {
 // Returns whether `superstring` contains all of the characters of `substring`
 // in order, but not necessarily contiguously.
 function containsChars(superstring: string, substring: string) {
-  var superstringIndex = 0;
-  var substringIndex = 0;
-  while (true) {
+  let superstringIndex = 0;
+  let substringIndex = 0;
+  for (;;) {
     if (substringIndex === substring.length) {
       return true;
     } else if (superstringIndex === superstring.length) {
       return false;
     }
 
-    if (superstring.charCodeAt(superstringIndex) === substring.charCodeAt(substringIndex)) {
+    if (
+      superstring.charCodeAt(superstringIndex) ===
+      substring.charCodeAt(substringIndex)
+    ) {
       substringIndex++;
     }
     superstringIndex++;

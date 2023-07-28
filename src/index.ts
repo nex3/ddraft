@@ -7,14 +7,15 @@ import got from 'got';
 import {Liquid} from 'liquidjs';
 import sharp from 'sharp';
 
+import {Card} from './card.js';
 import {Cube} from './cube.js';
 import {Database} from './db.js';
 import {Draft} from './draft.js';
 
 console.log('Loading cube list...');
 
-const CARD_WIDTH = 488;
-const CARD_HEIGHT = 680;
+const CARD_WIDTH = 745;
+const CARD_HEIGHT = 1040;
 
 const cube = await Cube.load();
 const db = Database.load();
@@ -66,7 +67,7 @@ app.get('/cube/ddraft/pack/:seat', (req, res) => {
   const pack = draft.getPack(seat);
   res.render('pack', {
     pack,
-    drafted: draft.getDrafted(seat),
+    drafted: Card.pileByCmc(draft.getDrafted(seat)),
     sideboard: draft.getSideboard(seat),
     seatNumber: seat + 1,
     packNumber: draft.packNumber(seat),
@@ -100,21 +101,48 @@ app.post('/cube/api/ddraft/pack/:seat', (req, res) => {
 app.get('/image/:cards', async (req, res) => {
   const cards = cube.decodeCards(req.params.cards);
 
-  const width = 5;
-  const height = Math.ceil(cards.length / width);
-  const image = await sharp({
-    create: {
-      width: Math.round(CARD_WIDTH * width),
-      height: Math.round(CARD_HEIGHT * height),
-      channels: 3,
-      background: {r: 255, g: 255, b: 255},
-    },
-  })
-    .composite(
+  let image: sharp.Sharp;
+  if ('cmc' in req.query) {
+    const columns = Card.pileByCmc(cards);
+    const verticalOffset = CARD_HEIGHT / 9;
+    const depth = Math.max(...columns.map(column => column.length));
+    image = sharp({
+      create: {
+        width: Math.round(CARD_WIDTH * columns.length),
+        height: Math.round(CARD_HEIGHT + verticalOffset * (depth - 1)),
+        channels: 3,
+        background: {r: 255, g: 255, b: 255},
+      },
+    }).composite(
+      await Promise.all(
+        columns.flatMap((column, columnIndex) =>
+          column.map(async (card, cardIndex) => {
+            const url = new URL(card.imageUrl);
+            url.searchParams.set('version', 'png');
+            return {
+              input: await got(url).buffer(),
+              left: Math.round(CARD_WIDTH * columnIndex),
+              top: Math.round(verticalOffset * cardIndex),
+            };
+          })
+        )
+      )
+    );
+  } else {
+    const width = 5;
+    const height = Math.ceil(cards.length / width);
+    image = await sharp({
+      create: {
+        width: Math.round(CARD_WIDTH * width),
+        height: Math.round(CARD_HEIGHT * height),
+        channels: 3,
+        background: {r: 255, g: 255, b: 255},
+      },
+    }).composite(
       await Promise.all(
         cards.map(async (card, index) => {
           const url = new URL(card.imageUrl);
-          url.searchParams.set('version', 'normal');
+          url.searchParams.set('version', 'png');
           return {
             input: await got(url).buffer(),
             left: Math.round(CARD_WIDTH * (index % width)),
@@ -122,12 +150,11 @@ app.get('/image/:cards', async (req, res) => {
           };
         })
       )
-    )
-    .webp({quality: 80})
-    .toBuffer();
+    );
+  }
 
   res.writeHead(200, {'Content-Type': 'image/webp'});
-  res.end(image);
+  res.end(await image.webp().toBuffer());
 });
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;

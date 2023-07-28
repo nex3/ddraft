@@ -16,10 +16,28 @@ section {
   img {
     display: block;
     width: 230px;
-    transition: transform 0.2s;
+    transition: transform 0.2s, transform-origin 0.2s;
 
     &:hover {
       transform: scale(1.5);
     }
+  }
+}
+
+.cmc {
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+
+  a:not(:first-child) img {
+    margin-top: -290px;
+  }
+
+  img {
+    transform-origin: top;
+  }
+
+  a:hover ~ a {
+    opacity: 0;
   }
 }

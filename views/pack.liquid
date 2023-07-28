@@ -16,7 +16,11 @@
   </section>
   <section>
     <h1>Deck</h1>
-    {% render 'card.liquid' for drafted as card %}
+    {% for cmc in drafted %}
+      <div class="cmc">
+        {% render 'card.liquid' for cmc as card %}
+      </div>
+    {% endfor %}
   </section>
   <section>
     <h1>Sideboard</h1>
