@@ -1,0 +1,21 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Seat {{seatNumber}} | Pack {{packNumber}} Pick {{pickNumber}}</title>
+</head>
+<body>
+  <section>
+    <h1>Pack</h1>
+    {% render 'card.liquid' for pack as card %}
+  </section>
+  <section>
+    <h1>Deck</h1>
+    {% render 'card.liquid' for drafted as card %}
+  </section>
+  <section>
+    <h1>Sideboard</h1>
+    {% render 'card.liquid' for sideboard as card %}
+  </section>
+</body>
+</html>

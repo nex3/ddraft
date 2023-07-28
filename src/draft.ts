@@ -44,9 +44,8 @@ export class Draft {
       draft.save();
       return draft;
     } else {
-      const deserializeCards = (names: string[]): Card[] => {
-        return names.map(name => cube.getCard(name));
-      };
+      const deserializeCards = (names: string[]): Card[] =>
+        names.map(name => cube.getCard(name));
 
       return new Draft(
         cube,
@@ -104,6 +103,10 @@ export class Draft {
     }
 
     return response;
+  }
+
+  getPack(index: number): Card[] {
+    return this.seats[index].currentPack;
   }
 
   save(): void {

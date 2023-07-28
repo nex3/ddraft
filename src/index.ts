@@ -1,4 +1,5 @@
 import express from 'express';
+import {Liquid} from 'liquidjs';
 
 import {Cube} from './cube.js';
 import {Database} from './db.js';
@@ -19,6 +20,14 @@ db.set('digest', cube.digest);
 
 const app = express();
 
+const liquid = new Liquid({
+  cache: process.env.NODE_ENV === 'production',
+  ownPropertyOnly: false,
+});
+app.engine('liquid', liquid.express());
+app.set('views', './views');
+app.set('view engine', 'liquid');
+
 app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
   const draft = Draft.loadOrCreate(cube, db);
   const seat = draft.seatToShow();
@@ -28,6 +37,18 @@ app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
     choose: `/cube/api/ddraft/pack/${seat}`,
     swap: `/cube/api/ddraft/draft/moddy/${seat}/swap`,
     ...draft.seatImages(seat),
+  });
+});
+
+app.get('/cube/ddraft/pack/:seat', (req, res) => {
+  const draft = Draft.loadOrCreate(cube, db);
+  const seat = parseInt(req.params.seat);
+  if (seat < 0 || seat >= Draft.numberOfSeats) {
+    throw `Seat must be between 0 and ${Draft.numberOfSeats}`;
+  }
+
+  res.render('pack', {
+    pack: draft.getPack(seat),
   });
 });
 
