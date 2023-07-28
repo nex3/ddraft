@@ -5,6 +5,12 @@ export class Card {
     readonly id: string
   ) {}
 
+  get url(): string {
+    const url = new URL('https://scryfall.com/search');
+    url.searchParams.append('q', `e:${this.set} "${this.name}"`);
+    return url.href;
+  }
+
   get imageUrl(): string {
     const url = new URL(
       'https://api.scryfall.com/cards/named?format=image&version=png'

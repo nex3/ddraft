@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as url from 'url';
+
 import express from 'express';
 import {Liquid} from 'liquidjs';
 
@@ -19,6 +22,16 @@ if (oldDigest !== undefined && oldDigest !== cube.digest) {
 db.set('digest', cube.digest);
 
 const app = express();
+
+const prodPublic = url.fileURLToPath(new URL('public', import.meta.url));
+const devPublic = url.fileURLToPath(
+  new URL('../build/src/public', import.meta.url)
+);
+app.use(
+  express.static(
+    fs.existsSync(`${prodPublic}/style.css`) ? prodPublic : devPublic
+  )
+);
 
 const liquid = new Liquid({
   cache: process.env.NODE_ENV === 'production',

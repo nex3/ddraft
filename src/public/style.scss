@@ -1,0 +1,25 @@
+@use 'sass:math';
+
+body {
+  font-family: Century Gothic, CenturyGothic, AppleGothic, sans-serif; 
+}
+
+section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  h1 {
+    width: 100%;
+  }
+
+  img {
+    display: block;
+    width: 230px;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.5);
+    }
+  }
+}
