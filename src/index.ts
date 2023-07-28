@@ -60,8 +60,12 @@ app.get('/cube/ddraft/pack/:seat', (req, res) => {
     throw `Seat must be between 0 and ${Draft.numberOfSeats}`;
   }
 
+  const pack = draft.getPack(seat);
   res.render('pack', {
-    pack: draft.getPack(seat),
+    pack,
+    seatNumber: seat + 1,
+    packNumber: draft.packNumber(seat),
+    pickNumber: 16 - pack.length,
   });
 });
 

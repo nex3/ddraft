@@ -109,6 +109,10 @@ export class Draft {
     return this.seats[index].currentPack;
   }
 
+  packNumber(index: number): number {
+    return 3 - this.seats[index].unopenedPacks.length;
+  }
+
   save(): void {
     this.db.set(
       'seats',
