@@ -1,4 +1,6 @@
 import * as crypto from 'crypto';
+import varint from 'varint';
+import * as base64 from 'byte-base64';
 
 import * as csv from 'csv-parse/sync';
 import got from 'got';
@@ -12,7 +14,7 @@ const csvUrl =
 interface CsvCard {
   name: string;
   Set: string;
-  'MTGO ID': string;
+  'Collector Number': string;
 }
 
 export class Cube {
@@ -21,9 +23,10 @@ export class Cube {
   private cardsByName: Record<string, Card> = {};
 
   static async load(): Promise<Cube> {
+    let index = 0;
     return new Cube(
       (csv.parse(await got(csvUrl).text(), {columns: true}) as CsvCard[]).map(
-        card => new Card(card.name, card.Set, card['MTGO ID'])
+        card => new Card(card.name, card.Set, card['Collector Number'], index++)
       )
     );
   }
@@ -54,5 +57,24 @@ export class Cube {
 
   getRandomCards(count: number): Card[] {
     return sampleSize(this.cards, count);
+  }
+
+  encodeCards(cards: Card[]): string {
+    const buffer: number[] = [];
+    for (const card of cards) {
+      buffer.push(...varint.encode(card.index));
+    }
+    return base64.bytesToBase64(buffer);
+  }
+
+  decodeCards(encoded: string): Card[] {
+    const bytes = base64.base64ToBytes(encoded);
+    const cards: Card[] = [];
+    for (let i = 0; i < bytes.length; ) {
+      const index = varint.decode(bytes, i);
+      i += varint.decode.bytes!;
+      cards.push(this.cards[index]);
+    }
+    return cards;
   }
 }

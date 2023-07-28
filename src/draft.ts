@@ -95,22 +95,32 @@ export class Draft {
 
     const seat = this.seats[index];
     if (seat.drafted.length > 0) {
-      response.deck_image = `/cube/ddraft/deckimage/${index}`;
+      response.deck_image = `/image/${this.cube.encodeCards(seat.drafted)}`;
     }
 
     if (seat.sideboard.length > 0) {
-      response.sideboard_image = `/cube/ddraft/sbimage/${index}`;
+      response.sideboard_image = `/image/${this.cube.encodeCards(
+        seat.sideboard
+      )}`;
     }
 
     return response;
   }
 
   getPack(index: number): Card[] {
+    this.checkSeatNumber(index);
     return this.seats[index].currentPack;
   }
 
   packNumber(index: number): number {
+    this.checkSeatNumber(index);
     return 3 - this.seats[index].unopenedPacks.length;
+  }
+
+  private checkSeatNumber(seat: number): void {
+    if (seat < 0 || seat >= Draft.numberOfSeats) {
+      throw `Seat must be between 0 and ${Draft.numberOfSeats}`;
+    }
   }
 
   save(): void {

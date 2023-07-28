@@ -2,21 +2,15 @@ export class Card {
   constructor(
     readonly name: string,
     readonly set: string,
-    readonly id: string
+    readonly collectorNumber: string,
+    readonly index: number
   ) {}
 
   get url(): string {
-    const url = new URL('https://scryfall.com/search');
-    url.searchParams.append('q', `e:${this.set} "${this.name}"`);
-    return url.href;
+    return `https://scryfall.com/card/${this.set}/${this.collectorNumber}`;
   }
 
   get imageUrl(): string {
-    const url = new URL(
-      'https://api.scryfall.com/cards/named?format=image&version=png'
-    );
-    url.searchParams.append('exact', this.name);
-    url.searchParams.append('set', this.set);
-    return url.href;
+    return `https://api.scryfall.com/cards/${this.set}/${this.collectorNumber}?format=image&version=png`;
   }
 }
