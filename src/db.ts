@@ -1,5 +1,5 @@
 import {packageDirectory} from 'pkg-dir';
-import * as fs from 'fs/promises';
+import * as fs from 'fs';
 
 const path = (await packageDirectory()) + '/db.json';
 
@@ -12,10 +12,10 @@ export type Data =
   | {[key: string]: Data};
 
 export class Database {
-  static async load(): Promise<Database> {
+  static load(): Database {
     try {
       return new Database(
-        JSON.parse(await fs.readFile(path, 'utf8')) as Record<
+        JSON.parse(fs.readFileSync(path, 'utf8')) as Record<
           string,
           Readonly<Data>
         >
@@ -31,13 +31,13 @@ export class Database {
     return this.data[key];
   }
 
-  async set(key: string, value: Data): Promise<void> {
+  set(key: string, value: Data): void {
     this.data[key] = Object.freeze(structuredClone(value));
-    await fs.writeFile(path, JSON.stringify(this.data));
+    fs.writeFileSync(path, JSON.stringify(this.data));
   }
 
-  async clear(): Promise<void> {
+  clear(): void {
     this.data = {};
-    await fs.writeFile(path, '{}');
+    fs.writeFileSync(path, '{}');
   }
 }

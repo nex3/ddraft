@@ -6,21 +6,22 @@ import {Draft} from './draft.js';
 
 console.log('Loading cube list...');
 
-const [cube, db] = await Promise.all([Cube.load(), Database.load()]);
+const cube = await Cube.load();
+const db = Database.load();
 
 const oldDigest = db.get('digest');
 if (oldDigest !== undefined && oldDigest !== cube.digest) {
   console.log('Cube list outdated, resetting draft');
-  await db.clear();
+  db.clear();
 }
 
-await db.set('digest', cube.digest);
+db.set('digest', cube.digest);
 
 const app = express();
 
-app.get('/cube/api/ddraft/pack/moddy', async (_, res) => {
-  const draft = await Draft.loadOrCreate(cube, db);
-  const seat = await draft.seatToShow();
+app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
+  const draft = Draft.loadOrCreate(cube, db);
+  const seat = draft.seatToShow();
   return res.status(200).send({
     success: 'true',
     view: `/cube/ddraft/pack/${seat}`,

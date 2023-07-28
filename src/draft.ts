@@ -23,7 +23,7 @@ interface Seat {
 export class Draft {
   static numberOfSeats = 8;
 
-  static async loadOrCreate(cube: Cube, db: Database): Promise<Draft> {
+  static loadOrCreate(cube: Cube, db: Database): Draft {
     const serialized = db.get('seats') as SerializedSeat[] | undefined;
     if (serialized === undefined) {
       const packs = chunk(
@@ -41,7 +41,7 @@ export class Draft {
       );
 
       const draft = new Draft(cube, db, seats);
-      await draft.save();
+      draft.save();
       return draft;
     } else {
       const deserializeCards = (names: string[]): Card[] => {
@@ -69,7 +69,7 @@ export class Draft {
   ) {}
 
   /// Find the seat with the fewest picks that's been seen least recently.
-  async seatToShow(): Promise<number> {
+  seatToShow(): number {
     const {index} = this.seats
       .map((seat, index) => ({...seat, index}))
       .reduce((best, next) => {
@@ -87,7 +87,7 @@ export class Draft {
       });
 
     this.seats[index].readTime = new Date();
-    await this.save();
+    this.save();
     return index;
   }
 
@@ -106,8 +106,8 @@ export class Draft {
     return response;
   }
 
-  async save(): Promise<void> {
-    await this.db.set(
+  save(): void {
+    this.db.set(
       'seats',
       this.seats.map(seat => ({
         drafted: serializeCards(seat.drafted),
