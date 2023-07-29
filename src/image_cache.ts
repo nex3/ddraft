@@ -8,6 +8,16 @@ import {cube} from './cube.js';
 export const CARD_WIDTH = 745;
 export const CARD_HEIGHT = 1040;
 
+const singleCardCache = new LRUCache<string, Buffer>({
+  // Cache a full draft's worth of card images
+  max: 15 * 3 * 8,
+  fetchMethod: async key => {
+    const url = new URL(key);
+    url.searchParams.set('version', 'png');
+    return await got(url).buffer();
+  }
+});
+
 export const imageCache = new LRUCache<string, Buffer>({
   max: 15,
   fetchMethod: async key => {
@@ -28,10 +38,8 @@ export const imageCache = new LRUCache<string, Buffer>({
         await Promise.all(
           columns.flatMap((column, columnIndex) =>
             column.map(async (card, cardIndex) => {
-              const url = new URL(card.imageUrl);
-              url.searchParams.set('version', 'png');
               return {
-                input: await got(url).buffer(),
+                input: await singleCardCache.fetch(card.imageUrl),
                 left: Math.round(CARD_WIDTH * columnIndex),
                 top: Math.round(verticalOffset * cardIndex),
               };
@@ -53,10 +61,8 @@ export const imageCache = new LRUCache<string, Buffer>({
       }).composite(
         await Promise.all(
           cards.map(async (card, index) => {
-            const url = new URL(card.imageUrl);
-            url.searchParams.set('version', 'png');
             return {
-              input: await got(url).buffer(),
+              input: await singleCardCache.fetch(card.imageUrl),
               left: Math.round(CARD_WIDTH * (index % width)),
               top: Math.round(CARD_HEIGHT * Math.floor(index / width)),
             };
