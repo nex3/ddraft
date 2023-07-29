@@ -3,30 +3,13 @@ import * as url from 'url';
 
 import bodyParser from 'body-parser';
 import express from 'express';
-import got from 'got';
 import {Liquid} from 'liquidjs';
-import sharp from 'sharp';
 
 import {Card} from './card.js';
-import {Cube} from './cube.js';
-import {Database} from './db.js';
+import {cube} from './cube.js';
+import {db} from './db.js';
 import {Draft} from './draft.js';
-
-console.log('Loading cube list...');
-
-const CARD_WIDTH = 745;
-const CARD_HEIGHT = 1040;
-
-const cube = await Cube.load();
-const db = Database.load();
-
-const oldDigest = db.get('digest');
-if (oldDigest !== undefined && oldDigest !== cube.digest) {
-  console.log('Cube list outdated, resetting draft');
-  db.clear();
-}
-
-db.set('digest', cube.digest);
+import {imageCache, CARD_WIDTH, CARD_HEIGHT} from './image_cache.js';
 
 const app = express();
 
@@ -99,62 +82,11 @@ app.post('/cube/api/ddraft/pack/:seat', (req, res) => {
 });
 
 app.get('/image/:cards', async (req, res) => {
-  const cards = cube.decodeCards(req.params.cards);
-
-  let image: sharp.Sharp;
-  if ('cmc' in req.query) {
-    const columns = Card.pileByCmc(cards);
-    const verticalOffset = CARD_HEIGHT / 9;
-    const depth = Math.max(...columns.map(column => column.length));
-    image = sharp({
-      create: {
-        width: Math.round(CARD_WIDTH * columns.length),
-        height: Math.round(CARD_HEIGHT + verticalOffset * (depth - 1)),
-        channels: 3,
-        background: {r: 255, g: 255, b: 255},
-      },
-    }).composite(
-      await Promise.all(
-        columns.flatMap((column, columnIndex) =>
-          column.map(async (card, cardIndex) => {
-            const url = new URL(card.imageUrl);
-            url.searchParams.set('version', 'png');
-            return {
-              input: await got(url).buffer(),
-              left: Math.round(CARD_WIDTH * columnIndex),
-              top: Math.round(verticalOffset * cardIndex),
-            };
-          })
-        )
-      )
-    );
-  } else {
-    const width = 5;
-    const height = Math.ceil(cards.length / width);
-    image = await sharp({
-      create: {
-        width: Math.round(CARD_WIDTH * width),
-        height: Math.round(CARD_HEIGHT * height),
-        channels: 3,
-        background: {r: 255, g: 255, b: 255},
-      },
-    }).composite(
-      await Promise.all(
-        cards.map(async (card, index) => {
-          const url = new URL(card.imageUrl);
-          url.searchParams.set('version', 'png');
-          return {
-            input: await got(url).buffer(),
-            left: Math.round(CARD_WIDTH * (index % width)),
-            top: Math.round(CARD_HEIGHT * Math.floor(index / width)),
-          };
-        })
-      )
-    );
-  }
-
   res.writeHead(200, {'Content-Type': 'image/webp'});
-  res.end(await image.webp().toBuffer());
+  const buffer = await imageCache.fetch(
+    req.params.cards + ('cmc' in req.query ? '?cmc' : '')
+  );
+  res.end(buffer);
 });
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;

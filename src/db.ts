@@ -41,3 +41,5 @@ export class Database {
     fs.writeFileSync(path, '{}');
   }
 }
+
+export const db = Database.load();

@@ -7,6 +7,7 @@ import got from 'got';
 import sampleSize from 'lodash/sampleSize.js';
 
 import {Card} from './card.js';
+import {db} from './db.js';
 
 const csvUrl =
   'https://cubecobra.com/cube/download/csv/5eae7a67a85ffb101d7fd244?primary=Color%20Category&secondary=Types-Multicolor&tertiary=Mana%20Value&quaternary=Alphabetical&showother=undefined';
@@ -86,3 +87,14 @@ export class Cube {
     return cards;
   }
 }
+
+console.log('Loading cube list...');
+export const cube = await Cube.load();
+
+const oldDigest = db.get('digest');
+if (oldDigest !== undefined && oldDigest !== cube.digest) {
+  console.log('Cube list outdated, resetting draft');
+  db.clear();
+}
+
+db.set('digest', cube.digest);
