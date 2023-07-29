@@ -24,6 +24,19 @@ export class Cube {
 
   private cardsByName: Record<string, Card> = {};
 
+  static async reload(): Promise<void> {
+    console.log('Loading cube list...');
+    cube = await Cube.load();
+
+    const oldDigest = db.get('digest');
+    if (oldDigest !== undefined && oldDigest !== cube.digest) {
+      console.log('Cube list outdated, resetting draft');
+      db.clear();
+    }
+
+    db.set('digest', cube.digest);
+  }
+
   static async load(): Promise<Cube> {
     let index = 0;
     return new Cube(
@@ -89,7 +102,7 @@ export class Cube {
 }
 
 console.log('Loading cube list...');
-export const cube = await Cube.load();
+export let cube = await Cube.load();
 
 const oldDigest = db.get('digest');
 if (oldDigest !== undefined && oldDigest !== cube.digest) {

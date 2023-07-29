@@ -6,7 +6,7 @@ import express from 'express';
 import {Liquid} from 'liquidjs';
 
 import {Card} from './card.js';
-import {cube} from './cube.js';
+import {cube, Cube} from './cube.js';
 import {db} from './db.js';
 import {Draft} from './draft.js';
 import {imageCache, CARD_WIDTH, CARD_HEIGHT} from './image_cache.js';
@@ -99,6 +99,13 @@ app.post('/cube/api/ddraft/moddy/:seat/swap', (req, res) => {
     success: 'true',
     ...draft.seatImages(seat),
   });
+});
+
+app.post('/cube/api/ddraft/reset', async (req, res) => {
+  await Cube.reload();
+  db.clear();
+  imageCache.clear();
+  return res.status(200).send({success: true});
 });
 
 app.get('/image/:cards', async (req, res) => {
