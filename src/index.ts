@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as url from 'url';
 
 import bodyParser from 'body-parser';
+import * as dotenv from 'dotenv';
 import express from 'express';
 import {Liquid} from 'liquidjs';
 
@@ -10,6 +11,9 @@ import {cube, Cube} from './cube.js';
 import {db} from './db.js';
 import {Draft} from './draft.js';
 import {imageCache, CARD_WIDTH, CARD_HEIGHT} from './image_cache.js';
+
+// Access environment variables from the .env file.
+dotenv.config();
 
 const app = express();
 
