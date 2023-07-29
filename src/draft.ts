@@ -1,4 +1,5 @@
 import chunk from 'lodash/chunk.js';
+import includes from 'lodash/includes.js';
 import pull from 'lodash/pull.js';
 
 import {Card} from './card.js';
@@ -152,6 +153,22 @@ export class Draft {
 
       const nextSeat = this.seats[nextSeatIndex];
       nextSeat.packBacklog.push(pack);
+    }
+
+    this.save();
+  }
+
+  swap(index: number, name: string): void {
+    this.checkSeatNumber(index);
+    const seat = this.seats[index];
+
+    const card = this.chooseCard([...seat.drafted, ...seat.sideboard], name);
+    if (includes(seat.drafted, card)) {
+      pull(seat.drafted, card);
+      seat.sideboard.push(card);
+    } else {
+      pull(seat.sideboard, card);
+      seat.drafted.push(card);
     }
 
     this.save();

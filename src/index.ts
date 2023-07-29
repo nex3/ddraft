@@ -81,6 +81,26 @@ app.post('/cube/api/ddraft/pack/:seat', (req, res) => {
   });
 });
 
+app.post('/cube/api/ddraft/moddy/:seat/swap', (req, res) => {
+  const draft = Draft.loadOrCreate(cube, db);
+  const seat = parseInt(req.params.seat);
+
+  try {
+    draft.swap(seat, req.body.card);
+  } catch (error) {
+    if (typeof error !== 'string') throw error;
+    return res.status(400).send({
+      success: 'false',
+      message: error.toString(),
+    });
+  }
+
+  return res.status(200).send({
+    success: 'true',
+    ...draft.seatImages(seat),
+  });
+});
+
 app.get('/image/:cards', async (req, res) => {
   res.writeHead(200, {'Content-Type': 'image/webp'});
   const buffer = await imageCache.fetch(
