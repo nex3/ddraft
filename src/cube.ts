@@ -86,11 +86,16 @@ export class Cube {
     for (const card of cards) {
       buffer.push(...varint.encode(card.index));
     }
-    return base64.bytesToBase64(buffer);
+    return base64
+      .bytesToBase64(buffer)
+      .replaceAll(/\+/g, '.')
+      .replaceAll(/\//g, '_');
   }
 
   decodeCards(encoded: string): Card[] {
-    const bytes = base64.base64ToBytes(encoded);
+    const bytes = base64.base64ToBytes(
+      encoded.replaceAll(/\./g, '+').replaceAll(/_/g, '/')
+    );
     const cards: Card[] = [];
     for (let i = 0; i < bytes.length; ) {
       const index = varint.decode(bytes, i);

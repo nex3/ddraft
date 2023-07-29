@@ -115,10 +115,10 @@ app.post('/cube/api/ddraft/reset', async (req, res) => {
   return res.status(200).send({success: true});
 });
 
-app.get('/image/*?', async (req, res) => {
+app.get('/image/:cards', async (req, res) => {
   res.writeHead(200, {'Content-Type': 'image/webp'});
   const buffer = await imageCache.fetch(
-    (req.params as string[])[0] + ('cmc' in req.query ? '?cmc' : '')
+    req.params.cards + ('cmc' in req.query ? '?cmc' : '')
   );
   res.end(buffer);
 });
