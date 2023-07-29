@@ -4,7 +4,8 @@
     "rootDir": ".",
     "outDir": "build",
     "module": "node16",
-    "target": "es2017"
+    "target": "es2021",
+    "lib": ["es2021"]
   },
   "include": [
     "src/**/*.ts",
