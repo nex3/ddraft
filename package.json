@@ -6,6 +6,8 @@
   "scripts": {
     "build": "run-s 'build:**'",
     "serve": "run-p 'watch:**'",
+    "serve:prod": "node build/src/index.js",
+    "start": "NODE_ENV=production run-s build serve:prod",
     "lint": "gts lint",
     "clean": "gts clean",
     "fix": "gts fix",
