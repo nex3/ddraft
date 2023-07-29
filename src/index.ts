@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
 import express from 'express';
 import {Liquid} from 'liquidjs';
+import morgan from 'morgan';
 
 import {Card} from './card.js';
 import {cube, Cube} from './cube.js';
@@ -16,6 +17,8 @@ import {imageCache, CARD_WIDTH, CARD_HEIGHT} from './image_cache.js';
 dotenv.config();
 
 const app = express();
+
+app.use(morgan('short'));
 
 const prodPublic = url.fileURLToPath(new URL('public', import.meta.url));
 const devPublic = url.fileURLToPath(
