@@ -16,8 +16,7 @@ export class Card {
     readonly name: string,
     readonly set: string,
     readonly cmc: number,
-    readonly collectorNumber: string,
-    readonly index: number
+    readonly collectorNumber: string
   ) {}
 
   get url(): string {

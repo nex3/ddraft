@@ -4,6 +4,7 @@ import * as base64 from 'byte-base64';
 import * as csv from 'csv-parse/sync';
 import got from 'got';
 import sampleSize from 'lodash/sampleSize.js';
+import sortBy from 'lodash/sortBy.js';
 import varint from 'varint';
 
 import {Card} from './card.js';
@@ -20,9 +21,13 @@ interface CsvCard {
 }
 
 export class Cube {
+  private readonly cards: Card[];
+
   private _digest: string | undefined;
 
-  private cardsByName: Record<string, Card> = {};
+  private readonly cardsByName: Record<string, Card> = {};
+
+  private readonly indexesByCard = new Map<Card, number>();
 
   static async reload(): Promise<void> {
     console.log('Loading cube list...');
@@ -38,7 +43,6 @@ export class Cube {
   }
 
   static async load(): Promise<Cube> {
-    let index = 0;
     return new Cube(
       await Promise.all(
         (csv.parse(await got(csvUrl).text(), {columns: true}) as CsvCard[]).map(
@@ -53,22 +57,19 @@ export class Cube {
               )['cmc'] as number;
             }
 
-            return new Card(
-              card.name,
-              card.Set,
-              cmc,
-              card['Collector Number'],
-              index++
-            );
+            return new Card(card.name, card.Set, cmc, card['Collector Number']);
           }
         )
       )
     );
   }
 
-  private constructor(private readonly cards: Card[]) {
-    for (const card of cards) {
+  private constructor(cards: Card[]) {
+    this.cards = sortBy(cards, card => card.name);
+    for (let i = 0; i < cards.length; i++) {
+      const card = this.cards[i];
       this.cardsByName[card.name] = card;
+      this.indexesByCard.set(card, i);
     }
   }
 
@@ -97,7 +98,7 @@ export class Cube {
   encodeCards(cards: Card[]): string {
     const buffer: number[] = [];
     for (const card of cards) {
-      buffer.push(...varint.encode(card.index));
+      buffer.push(...varint.encode(this.indexesByCard.get(card)!));
     }
     return base64
       .bytesToBase64(buffer)
