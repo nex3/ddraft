@@ -1,10 +1,10 @@
 import * as crypto from 'crypto';
-import varint from 'varint';
-import * as base64 from 'byte-base64';
 
+import * as base64 from 'byte-base64';
 import * as csv from 'csv-parse/sync';
 import got from 'got';
 import sampleSize from 'lodash/sampleSize.js';
+import varint from 'varint';
 
 import {Card} from './card.js';
 import {db} from './db.js';
@@ -40,15 +40,28 @@ export class Cube {
   static async load(): Promise<Cube> {
     let index = 0;
     return new Cube(
-      (csv.parse(await got(csvUrl).text(), {columns: true}) as CsvCard[]).map(
-        card =>
-          new Card(
-            card.name,
-            card.Set,
-            parseInt(card.CMC),
-            card['Collector Number'],
-            index++
-          )
+      await Promise.all(
+        (csv.parse(await got(csvUrl).text(), {columns: true}) as CsvCard[]).map(
+          async card => {
+            let cmc = parseInt(card.CMC);
+            if (Number.isNaN(cmc)) {
+              cmc = (
+                (await got(
+                  `https://api.scryfall.com/cards/${card.Set}/` +
+                    card['Collector Number']
+                ).json()) as Record<string, unknown>
+              )['cmc'] as number;
+            }
+
+            return new Card(
+              card.name,
+              card.Set,
+              cmc,
+              card['Collector Number'],
+              index++
+            );
+          }
+        )
       )
     );
   }

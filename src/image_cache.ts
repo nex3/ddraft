@@ -15,7 +15,7 @@ const singleCardCache = new LRUCache<string, Buffer>({
     const url = new URL(key);
     url.searchParams.set('version', 'png');
     return await got(url).buffer();
-  }
+  },
 });
 
 export const imageCache = new LRUCache<string, Buffer>({
