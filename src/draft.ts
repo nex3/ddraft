@@ -150,6 +150,7 @@ export class Draft {
       const direction = seat.unopenedPacks.length === 1 ? 1 : -1;
       let nextSeatIndex = index + direction;
       if (nextSeatIndex < 0) nextSeatIndex += 8;
+      if (nextSeatIndex > 7) nextSeatIndex -= 8;
 
       const nextSeat = this.seats[nextSeatIndex];
       nextSeat.packBacklog.push(pack);
