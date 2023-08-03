@@ -116,11 +116,15 @@ app.post('/cube/api/ddraft/reset', async (req, res) => {
 });
 
 app.get('/image/:cards', async (req, res) => {
-  res.writeHead(200, {'Content-Type': 'image/webp'});
-  const buffer = await imageCache.fetch(
-    req.params.cards + ('cmc' in req.query ? '?cmc' : '')
-  );
-  res.end(buffer);
+  try {
+    const buffer = await imageCache.fetch(
+      req.params.cards + ('cmc' in req.query ? '?cmc' : '')
+    );
+    res.writeHead(200, {'Content-Type': 'image/webp'});
+    res.end(buffer);
+  } catch (_) {
+    res.status(500).send('Failed to load image.');
+  }
 });
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
