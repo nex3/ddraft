@@ -5,6 +5,7 @@ import pull from 'lodash/pull.js';
 import {Card} from './card.js';
 import {Cube} from './cube.js';
 import {Database} from './db.js';
+import * as utils from './utils.js';
 
 interface SerializedSeat {
   readonly drafted: string[];
@@ -190,6 +191,22 @@ export class Draft {
     } else {
       pull(seat.sideboard, card);
       seat.drafted.push(card);
+    }
+
+    this.save();
+  }
+
+  fixCards(name1: string, name2: string): void {
+    const card1 = this.chooseCard(this.cube.cards, name1);
+    const card2 = this.chooseCard(this.cube.cards, name2);
+    if (card1 === card2) throw "Can't swap a card with itself!";
+
+    for (const seat of this.seats) {
+      utils.swapInArray(seat.drafted, card1, card2);
+      utils.swapInArray(seat.sideboard, card1, card2);
+      for (const pack of [...seat.packBacklog, ...seat.unopenedPacks]) {
+        utils.swapInArray(pack, card1, card2);
+      }
     }
 
     this.save();

@@ -84,6 +84,22 @@ app.get('/api/decks', (req, res) => {
   });
 });
 
+app.post('/api/fix', (req, res) => {
+  const draft = Draft.loadOrCreate(cube, db);
+
+  try {
+    draft.fixCards(req.body.card1, req.body.card2);
+  } catch (error) {
+    if (typeof error !== 'string') throw error;
+    return res.status(400).send({
+      success: 'false',
+      message: error.toString(),
+    });
+  }
+
+  return res.status(200).send({success: 'true'});
+});
+
 app.post('/api/seat/:seat', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
   if (draft.isDone) {

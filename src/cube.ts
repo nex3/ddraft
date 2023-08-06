@@ -22,7 +22,7 @@ interface CsvCard {
 }
 
 export class Cube {
-  private readonly cards: Card[];
+  readonly cards: Card[];
 
   private _digest: string | undefined;
 
