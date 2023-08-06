@@ -181,9 +181,11 @@ app.get('/deck/:cards', async (req, res) => {
     typeof req.query.sb === 'string' ? cube.decodeCards(req.query.sb) : [];
   res.type('application/xml');
   const now = new Date();
+  const year = now.getFullYear();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
   res.attachment(
-    `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ` +
-      `${req.query.n ?? 'Unknown Deck'}.dek`
+    `${year}-${month}-${day} ${req.query.n ?? 'Unknown Deck'}.dek`
   );
   res.render('deck', {drafted, sideboard});
 });
