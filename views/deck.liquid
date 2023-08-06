@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Deck xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:xsl="http://www.w3.org/2001/XMLSchema-instance">
+  <NetDeckID>0</NetDeckID>
+  <PreconstructedDeckID>0</PreconstructedDeckID>
+  {% for card in drafted %}
+    <Cards CatID="{{card.mtgoId}}" Quantity="1" Sideboard="false"
+           Name="{{card.name}}" Annotation="0" />
+  {% endfor %}
+  {% for card in sideboard %}
+    <Cards CatID="{{card.mtgoId}}" Quantity="1" Sideboard="true"
+           Name="{{card.name}}" Annotation="0" />
+  {% endfor %}
+</Deck>

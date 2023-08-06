@@ -16,7 +16,8 @@ export class Card {
     readonly name: string,
     readonly set: string,
     readonly cmc: number,
-    readonly collectorNumber: string
+    readonly collectorNumber: string,
+    readonly mtgoId: number
   ) {}
 
   get url(): string {

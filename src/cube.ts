@@ -17,6 +17,7 @@ interface CsvCard {
   name: string;
   Set: string;
   'Collector Number': string;
+  'MTGO ID': string;
   CMC: string;
 }
 
@@ -57,7 +58,27 @@ export class Cube {
               )['cmc'] as number;
             }
 
-            return new Card(card.name, card.Set, cmc, card['Collector Number']);
+            let mtgoId = parseInt(card['MTGO ID']);
+            if (Number.isNaN(mtgoId)) {
+              const query = new URLSearchParams('unique=prints');
+              query.set('q', `!"${card.name}" in:mtgo`);
+              const prints = (
+                (await got(
+                  `https://api.scryfall.com/cards/search?${query}`
+                ).json()) as Record<string, unknown>
+              )['data'] as Record<string, unknown>[];
+              mtgoId = prints.find(print => print['mtgo_id'])![
+                'mtgo_id'
+              ] as number;
+            }
+
+            return new Card(
+              card.name,
+              card.Set,
+              cmc,
+              card['Collector Number'],
+              mtgoId
+            );
           }
         )
       )

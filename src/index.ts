@@ -51,6 +51,17 @@ app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
   });
 });
 
+app.get('/seat/:seat.dek', async (req, res) => {
+  const draft = Draft.loadOrCreate(cube, db);
+  const seat = parseInt(req.params.seat);
+  res.type('application/xml');
+  res.attachment(`Discord Draft Seat ${seat + 1}.xml`);
+  res.render('deck', {
+    drafted: draft.getDrafted(seat),
+    sideboard: draft.getSideboard(seat),
+  });
+});
+
 app.get('/seat/:seat', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
   const seat = parseInt(req.params.seat);
@@ -109,6 +120,13 @@ app.post('/api/seat/:seat/swap', (req, res) => {
 });
 
 app.post('/cube/api/ddraft/reset', async (req, res) => {
+  await Cube.reload();
+  db.clear();
+  imageCache.clear();
+  return res.status(200).send({success: true});
+});
+
+app.post('/', async (req, res) => {
   await Cube.reload();
   db.clear();
   imageCache.clear();
