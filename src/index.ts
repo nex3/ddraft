@@ -183,7 +183,7 @@ app.get('/deck/:cards', async (req, res) => {
   const now = new Date();
   res.attachment(
     `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ` +
-      `${req.query.n ?? 'Unknown Deck'}.xml`
+      `${req.query.n ?? 'Unknown Deck'}.dek`
   );
   res.render('deck', {drafted, sideboard});
 });
