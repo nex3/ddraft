@@ -42,7 +42,7 @@ app.set('view engine', 'liquid');
 app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
   const draft = Draft.loadOrCreate(cube, db);
   if (draft.isDone) {
-    return res.status(200).send({
+    return res.status(400).send({
       success: 'false',
       message: 'The draft has completed.',
       decks: draft.deckUrls,
@@ -103,7 +103,7 @@ app.post('/api/fix', (req, res) => {
 app.post('/api/seat/:seat', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
   if (draft.isDone) {
-    return res.status(200).send({
+    return res.status(400).send({
       success: 'false',
       message: 'The draft has completed.',
       decks: draft.deckUrls,
