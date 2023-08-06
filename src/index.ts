@@ -41,6 +41,14 @@ app.set('view engine', 'liquid');
 
 app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
   const draft = Draft.loadOrCreate(cube, db);
+  if (draft.isDone) {
+    return res.status(200).send({
+      success: 'false',
+      message: 'The draft has completed.',
+      decks: draft.deckUrls,
+    });
+  }
+
   const seat = draft.seatToShow();
   return res.status(200).send({
     success: 'true',
@@ -48,17 +56,6 @@ app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
     choose: `/api/seat/${seat}`,
     swap: `/api/seat/${seat}/swap`,
     ...draft.seatImages(seat),
-  });
-});
-
-app.get('/seat/:seat.dek', async (req, res) => {
-  const draft = Draft.loadOrCreate(cube, db);
-  const seat = parseInt(req.params.seat);
-  res.type('application/xml');
-  res.attachment(`Discord Draft Seat ${seat + 1}.xml`);
-  res.render('deck', {
-    drafted: draft.getDrafted(seat),
-    sideboard: draft.getSideboard(seat),
   });
 });
 
@@ -79,8 +76,24 @@ app.get('/seat/:seat', (req, res) => {
   });
 });
 
+app.get('/api/decks', (req, res) => {
+  const draft = Draft.loadOrCreate(cube, db);
+  res.status(200).send({
+    success: 'true',
+    decks: draft.deckUrls,
+  });
+});
+
 app.post('/api/seat/:seat', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
+  if (draft.isDone) {
+    return res.status(200).send({
+      success: 'false',
+      message: 'The draft has completed.',
+      decks: draft.deckUrls,
+    });
+  }
+
   const seat = parseInt(req.params.seat);
 
   try {
@@ -96,6 +109,7 @@ app.post('/api/seat/:seat', (req, res) => {
   return res.status(200).send({
     success: 'true',
     ...draft.seatImages(seat),
+    ...(draft.isDone ? {deckUrls: draft.deckUrls} : {}),
   });
 });
 
@@ -143,6 +157,19 @@ app.get('/image/:cards', async (req, res) => {
   } catch (_) {
     res.status(500).send('Failed to load image.');
   }
+});
+
+app.get('/deck/:cards', async (req, res) => {
+  const drafted = cube.decodeCards(req.params.cards);
+  const sideboard =
+    typeof req.query.sb === 'string' ? cube.decodeCards(req.query.sb) : [];
+  res.type('application/xml');
+  const now = new Date();
+  res.attachment(
+    `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ` +
+      `${req.query.n ?? 'Unknown Deck'}.xml`
+  );
+  res.render('deck', {drafted, sideboard});
 });
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;

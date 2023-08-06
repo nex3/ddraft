@@ -63,6 +63,26 @@ export class Draft {
     }
   }
 
+  get isDone(): boolean {
+    return this.seats.every(
+      seat => seat.drafted.length + seat.sideboard.length === 45
+    );
+  }
+
+  get deckUrls(): Record<string, string> {
+    return Object.fromEntries(
+      [...Array(Draft.numberOfSeats).keys()].map(i => {
+        const drafted = this.cube.encodeCards(this.getDrafted(i));
+        const sideboard = this.cube.encodeCards(this.getSideboard(i));
+        const name = `Seat ${i + 1}`;
+        const params = new URLSearchParams();
+        params.set('sb', sideboard);
+        params.set('n', name);
+        return [name, `/deck/${drafted}?${params}`];
+      })
+    );
+  }
+
   private constructor(
     private cube: Cube,
     private db: Database,
