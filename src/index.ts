@@ -55,6 +55,7 @@ app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
     view: `/seat/${seat + 1}`,
     choose: `/api/seat/${seat + 1}`,
     swap: `/api/seat/${seat + 1}/swap`,
+    name: `/api/seat/${seat + 1}/name`,
     ...draft.seatImages(seat),
   });
 });
