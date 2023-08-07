@@ -52,16 +52,16 @@ app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
   const seat = draft.seatToShow();
   return res.status(200).send({
     success: 'true',
-    view: `/seat/${seat}`,
-    choose: `/api/seat/${seat}`,
-    swap: `/api/seat/${seat}/swap`,
+    view: `/seat/${seat + 1}`,
+    choose: `/api/seat/${seat + 1}`,
+    swap: `/api/seat/${seat + 1}/swap`,
     ...draft.seatImages(seat),
   });
 });
 
 app.get('/seat/:seat', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
-  const seat = parseInt(req.params.seat);
+  const seat = parseInt(req.params.seat) - 1;
   const pack = draft.getPack(seat);
   res.render('pack', {
     pack,
@@ -110,7 +110,7 @@ app.post('/api/seat/:seat', (req, res) => {
     });
   }
 
-  const seat = parseInt(req.params.seat);
+  const seat = parseInt(req.params.seat) - 1;
 
   try {
     draft.pick(seat, req.body.card, req.body.sideboard);
@@ -131,7 +131,7 @@ app.post('/api/seat/:seat', (req, res) => {
 
 app.post('/api/seat/:seat/name', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
-  const seat = parseInt(req.params.seat);
+  const seat = parseInt(req.params.seat) - 1;
 
   try {
     draft.setName(seat, req.body.name);
@@ -151,7 +151,7 @@ app.post('/api/seat/:seat/name', (req, res) => {
 
 app.post('/api/seat/:seat/swap', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
-  const seat = parseInt(req.params.seat);
+  const seat = parseInt(req.params.seat) - 1;
 
   try {
     draft.swap(seat, req.body.card);

@@ -82,7 +82,7 @@ export class Draft {
       const params = new URLSearchParams();
       params.set('sb', sideboard);
       params.set('n', name);
-      return {name, deck: `/deck/${drafted}?${params}`, seat: `/seat/${i}`};
+      return {name, deck: `/deck/${drafted}?${params}`, seat: `/seat/${i + 1}`};
     });
   }
 
@@ -163,7 +163,7 @@ export class Draft {
     const seat = this.seats[index];
     const pack = seat.packBacklog[0];
     if (!pack) {
-      throw `Seat ${index} doesn't have a pack to pick from.`;
+      throw `Seat ${index + 1} doesn't have a pack to pick from.`;
     }
 
     const pick = this.chooseCard(pack, name);
@@ -257,7 +257,7 @@ export class Draft {
 
   private checkSeatNumber(seat: number): void {
     if (seat < 0 || seat >= Draft.numberOfSeats) {
-      throw `Seat must be between 0 and ${Draft.numberOfSeats}`;
+      throw `Seat must be between 1 and ${Draft.numberOfSeats}`;
     }
   }
 
