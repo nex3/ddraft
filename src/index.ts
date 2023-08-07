@@ -129,6 +129,26 @@ app.post('/api/seat/:seat', (req, res) => {
   });
 });
 
+app.post('/api/seat/:seat/name', (req, res) => {
+  const draft = Draft.loadOrCreate(cube, db);
+  const seat = parseInt(req.params.seat);
+
+  try {
+    draft.setName(seat, req.body.name);
+  } catch (error) {
+    if (typeof error !== 'string') throw error;
+    return res.status(400).send({
+      success: 'false',
+      message: error.toString(),
+    });
+  }
+
+  return res.status(200).send({
+    success: 'true',
+    ...draft.seatImages(seat),
+  });
+});
+
 app.post('/api/seat/:seat/swap', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
   const seat = parseInt(req.params.seat);

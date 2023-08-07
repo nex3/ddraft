@@ -12,6 +12,7 @@ interface SerializedSeat {
   readonly sideboard: string[];
   readonly packBacklog: string[][];
   readonly unopenedPacks: string[][];
+  readonly name: string | null;
   readonly readTime: number | null;
 }
 
@@ -20,6 +21,7 @@ interface Seat {
   readonly sideboard: Card[];
   readonly packBacklog: Card[][];
   readonly unopenedPacks: Card[][];
+  name: string | null;
   readTime: Date | null;
 }
 
@@ -35,6 +37,7 @@ export class Draft {
       );
       const seats: Seat[] = chunk(packs, 3).map(
         ([currentPack, ...unopenedPacks]) => ({
+          name: null,
           drafted: [],
           sideboard: [],
           packBacklog: [currentPack],
@@ -54,6 +57,7 @@ export class Draft {
         cube,
         db,
         serialized.map(seat => ({
+          name: seat.name,
           drafted: deserializeCards(seat.drafted),
           sideboard: deserializeCards(seat.sideboard),
           packBacklog: seat.packBacklog.map(deserializeCards),
@@ -70,11 +74,11 @@ export class Draft {
     );
   }
 
-  get deckUrls(): Record<string, unknown>[] {
+  get deckInfo(): Record<string, unknown>[] {
     return [...Array(Draft.numberOfSeats).keys()].map(i => {
       const drafted = this.cube.encodeCards(this.getDrafted(i));
       const sideboard = this.cube.encodeCards(this.getSideboard(i));
-      const name = `Seat ${i + 1}`;
+      const name = this.seats[i].name ?? `Seat ${i + 1}`;
       const params = new URLSearchParams();
       params.set('sb', sideboard);
       params.set('n', name);
@@ -126,6 +130,12 @@ export class Draft {
     }
 
     return response;
+  }
+
+  setName(index: number, name: string): void {
+    this.checkSeatNumber(index);
+    this.seats[index].name = name;
+    this.save();
   }
 
   getPack(index: number): Card[] {
@@ -255,6 +265,7 @@ export class Draft {
     this.db.set(
       'seats',
       this.seats.map(seat => ({
+        name: seat.name,
         drafted: serializeCards(seat.drafted),
         sideboard: serializeCards(seat.sideboard),
         packBacklog: seat.packBacklog.map(serializeCards),
