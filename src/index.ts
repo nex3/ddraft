@@ -45,7 +45,7 @@ app.get('/cube/api/ddraft/pack/moddy', (_, res) => {
     return res.status(400).send({
       success: 'false',
       message: 'The draft has completed.',
-      decks: draft.deckUrls,
+      decks: draft.deckInfo,
     });
   }
 
@@ -80,7 +80,7 @@ app.get('/api/decks', (req, res) => {
   const draft = Draft.loadOrCreate(cube, db);
   res.status(200).send({
     success: 'true',
-    decks: draft.deckUrls,
+    decks: draft.deckInfo,
   });
 });
 
@@ -106,7 +106,7 @@ app.post('/api/seat/:seat', (req, res) => {
     return res.status(400).send({
       success: 'false',
       message: 'The draft has completed.',
-      decks: draft.deckUrls,
+      decks: draft.deckInfo,
     });
   }
 
@@ -125,7 +125,7 @@ app.post('/api/seat/:seat', (req, res) => {
   return res.status(200).send({
     success: 'true',
     ...draft.seatImages(seat),
-    ...(draft.isDone ? {deckUrls: draft.deckUrls} : {}),
+    ...(draft.isDone ? {decks: draft.deckInfo} : {}),
   });
 });
 

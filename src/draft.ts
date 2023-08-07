@@ -70,18 +70,16 @@ export class Draft {
     );
   }
 
-  get deckUrls(): Record<string, string> {
-    return Object.fromEntries(
-      [...Array(Draft.numberOfSeats).keys()].map(i => {
-        const drafted = this.cube.encodeCards(this.getDrafted(i));
-        const sideboard = this.cube.encodeCards(this.getSideboard(i));
-        const name = `Seat ${i + 1}`;
-        const params = new URLSearchParams();
-        params.set('sb', sideboard);
-        params.set('n', name);
-        return [name, `/deck/${drafted}?${params}`];
-      })
-    );
+  get deckUrls(): Record<string, unknown>[] {
+    return [...Array(Draft.numberOfSeats).keys()].map(i => {
+      const drafted = this.cube.encodeCards(this.getDrafted(i));
+      const sideboard = this.cube.encodeCards(this.getSideboard(i));
+      const name = `Seat ${i + 1}`;
+      const params = new URLSearchParams();
+      params.set('sb', sideboard);
+      params.set('n', name);
+      return {name, deck: `/deck/${drafted}?${params}`, seat: `/seat/${i}`};
+    });
   }
 
   private constructor(
