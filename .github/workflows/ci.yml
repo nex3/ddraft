@@ -1,0 +1,31 @@
+name: CI
+
+defaults:
+  run: {shell: bash}
+
+on:
+  push: {branches: [main]}
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Restart server
+      run: >
+        ssh -o StrictHostKeyChecking=no nex3@ddraft.clients.dashdash.help '
+          nvm use --lts &&
+            cd ~/ddraft &&
+            git fetch origin &&
+            git reset --hard origin/main &&
+            npm install &&
+            npm run build && (
+              kill $(cat nohup.pid);
+              (nohup node build/src/index.js &>/dev/null & echo $! > nohup.pid)
+            )
+        '
