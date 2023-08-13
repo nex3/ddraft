@@ -37,6 +37,7 @@ export class Database {
   }
 
   clear(): void {
+    fs.writeFileSync('${path}.old', JSON.stringify(this.data));
     this.data = {};
     fs.writeFileSync(path, '{}');
   }
