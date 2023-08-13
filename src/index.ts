@@ -177,13 +177,6 @@ app.post('/cube/api/ddraft/reset', async (req, res) => {
   return res.status(200).send({success: true});
 });
 
-app.post('/', async (req, res) => {
-  await Cube.reload();
-  db.clear();
-  imageCache.clear();
-  return res.status(200).send({success: true});
-});
-
 app.get('/image/:cards', async (req, res) => {
   try {
     const buffer = await imageCache.fetch(
